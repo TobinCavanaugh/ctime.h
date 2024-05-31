@@ -3,39 +3,54 @@
 //
 #include <stdio.h>
 #include "ctime.h"
+#include "sw.h"
 
 void printa() {
-    printf("a\n");
+    puts("a\n");
     fflush(stdout);
 }
 
 void printb() {
-    printf("b\n");
+    puts("b\n");
     fflush(stdout);
 }
 
 void printc() {
-    printf("c\n");
+    puts("c\n");
     fflush(stdout);
 }
 
-void donothing(void) {
+int v = 0;
 
+void donothing(void) {
+//    printf("~");
+//    int i = 0;
+//    i += 100;
+    ++v;
+    printf("-");
 }
 
 int main() {
-    int i = 0;
+    sw_memory_print_auto();
 
-//    while(1){
-    for (; i < 1000; i++) {
-        create_timer(1000, &printa);
-        create_timer(750, &printb);
-        create_timer(500, &printc);
+    double ms = sw_start_ms();
+    double us = sw_start_us();
+
+    int i;
+    for (i = 0; i < 1000; i++) {
+        create_timer(1000, &donothing);
     }
 
-    while (ctime_active_timers > 0) {}
+    while (!all_timers_stopped()) {
+//        printf("%d\n", ctime_active_timers_count);
+    }
 
-    printf("DONE");
+    printf("%d\n\n", v);
+
+    printf("%fus | %fms\n", sw_stop_us(us), sw_stop_ms(ms));
+    sw_memory_print_auto();
+
+    puts("DONE");
 
     return 0;
 }
