@@ -5,7 +5,7 @@
 
 The process of using a timer is to:
 - Create a thread
-- Wait `n`ms in the thread
+- Wait `n` milliseconds in the thread
 - Call the callback function
 
 
