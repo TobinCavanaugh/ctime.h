@@ -5,7 +5,9 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <malloc.h>
-#include <math.h>
+
+/// Macro for defining function pointers
+#define ctime_func_ptr(a) void(*a)(void)
 
 /// Mutex for ctime_active_timers_count
 static pthread_mutex_t ctime_active_timers_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -13,7 +15,6 @@ static pthread_mutex_t ctime_active_timers_mutex = PTHREAD_MUTEX_INITIALIZER;
 /// How many timers are actively running. DO NOT MODIFY
 static uint16_t ctime_active_timers_count = 0;
 
-#define ctime_func_ptr(a) void(*a)(void)
 
 /// Args for ctime_internal_start_timer
 typedef struct {
@@ -56,7 +57,8 @@ void ctime_internal_start_timer(void *rawArgs) {
 }
 
 /// Create a timer that calls function when the elapsed time (ms) finishes
-/// \param ms The time in milliseconds to wait before the function will be invoked
+/// \param ms The time in milliseconds to wait before the function will be invoked.
+/// The actual wait time may be +/- up to 15ms due to thread creation delays
 /// \param function The function to be invoked
 void ctime_create(int ms, ctime_func_ptr(function)) {
 
@@ -83,7 +85,7 @@ void ctime_create(int ms, ctime_func_ptr(function)) {
 /// complete. Like so: ```while (!ctime_timers_stopped()) {}```
 /// \return 1 if all timers are stopped.
 uint8_t ctime_timers_stopped() {
-    //Not sure if this is strictly necessary
+    //Not sure if this is strictly necessary, because we're reading the value...
     pthread_mutex_unlock(&ctime_active_timers_mutex);
     int val = ctime_active_timers_count;
     if (val < 0) {
