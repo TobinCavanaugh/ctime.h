@@ -1,4 +1,3 @@
-
 #ifndef CTIME
 #define CTIME
 
@@ -7,40 +6,32 @@
 #include <pthread.h>
 #include <malloc.h>
 
-
+/// Mutex for ctime_active_timers_count
 static pthread_mutex_t ctime_active_timers_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+/// How many timers are actively running. DO NOT MODIFY
 static uint16_t ctime_active_timers_count = 0;
 
 #define ctime_func_ptr(a) void(*a)(void)
 
-///Total size 24B -> 32B
+/// Args for ctime_internal_start_timer
 typedef struct {
+    /// The amount of time in ms to wait
     uint64_t ms;
 
+    /// The function to be called when the timer ends
     ctime_func_ptr(function);
-
-} internal_ctime_args;
-
-//Function prototypes
-void internal_start_timer(void *rawArgs);
-
-void create_timer(int ms, void (*function)(void));
-
+} ctime_internal_args;
 
 /// This is our internal function for our pthread to call.
 /// If you're reading this, probably dont mess with this
-/// \param rawArgs
-void internal_start_timer(void *rawArgs) {
+/// \param rawArgs The ctime_internal_args to read the data from
+void ctime_internal_start_timer(void *rawArgs) {
     //Read our void * rawArgs as 8 byte values
-    internal_ctime_args *args = (internal_ctime_args *) rawArgs;
-
-//    printf("%llu\n", args->function);
-//    printf("%llu\n", *args->function);
+    ctime_internal_args *args = (ctime_internal_args *) rawArgs;
 
     //Get our wait duration
     uint64_t ms = args->ms;
-
-//    printf("%d,", ctime_active_timers_count);
 
     //Get our function pointer
     ctime_func_ptr(timerDone) = args->function;
@@ -64,12 +55,10 @@ void internal_start_timer(void *rawArgs) {
 /// Create a timer that calls function when the elapsed time (ms) finishes
 /// \param ms The time in milliseconds to wait before the function will be invoked
 /// \param function The function to be invoked
-void create_timer(int ms, ctime_func_ptr(function)) {
+void ctime_create(int ms, ctime_func_ptr(function)) {
 
-//    uint64_t *data = malloc(sizeof(uint64_t) * CTIME_ARR_LEN);
-    internal_ctime_args *args = calloc(1, sizeof(internal_ctime_args));
-
-    //Load in our data
+    //Initialize our arguments
+    ctime_internal_args *args = malloc(sizeof(ctime_internal_args));
     args->ms = ms;
     args->function = function;
 
@@ -77,7 +66,7 @@ void create_timer(int ms, ctime_func_ptr(function)) {
 
     //Start our thread
     pthread_t p;
-    int err = pthread_create(&p, NULL, &internal_start_timer, (void *) args);
+    int err = pthread_create(&p, NULL, &ctime_internal_start_timer, (void *) args);
 
     if (err != 0) {
         printf("CTIME ERROR: FAILED TO CREATE THREAD: %d\n", err);
@@ -86,11 +75,16 @@ void create_timer(int ms, ctime_func_ptr(function)) {
     }
 }
 
-int all_timers_stopped() {
-    int val = 1;
+/// This will allow you to prevent the program from closing before all timers are
+/// complete. Like so: ```while (!ctime_timers_stopped()) {}```
+/// \return 1 if all timers are stopped.
+uint8_t ctime_timers_stopped() {
+    //Not sure if this is strictly necessary
     pthread_mutex_unlock(&ctime_active_timers_mutex);
-    val = ctime_active_timers_count;
-//    printf("%d~\n", val);
+    int val = ctime_active_timers_count;
+    if (val < 0) {
+        ctime_active_timers_count = 0;
+    }
     pthread_mutex_lock(&ctime_active_timers_mutex);
 
     return val <= 0;

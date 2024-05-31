@@ -20,14 +20,8 @@ void printc() {
     fflush(stdout);
 }
 
-int v = 0;
-
 void donothing(void) {
-//    printf("~");
-//    int i = 0;
-//    i += 100;
-    ++v;
-    printf("-");
+    printf("-\n");
 }
 
 int main() {
@@ -37,18 +31,19 @@ int main() {
     double us = sw_start_us();
 
     int i;
-    for (i = 0; i < 1000; i++) {
-        create_timer(1000, &donothing);
+    for (i = 0; i < 10; i++) {
+        ctime_create(1000, &donothing);
     }
 
-    while (!all_timers_stopped()) {
-//        printf("%d\n", ctime_active_timers_count);
-    }
-
-    printf("%d\n\n", v);
+    while (!ctime_timers_stopped()) {}
 
     printf("%fus | %fms\n", sw_stop_us(us), sw_stop_ms(ms));
     sw_memory_print_auto();
+
+    pthread_t thread;
+
+    pthread_create(&thread, NULL, NULL, NULL);
+    printf("%lld\n", thread);
 
     puts("DONE");
 
