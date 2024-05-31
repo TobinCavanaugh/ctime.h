@@ -3,48 +3,33 @@
 //
 #include <stdio.h>
 #include "ctime.h"
-#include "sw.h"
 
 void printa() {
-    puts("a\n");
-    fflush(stdout);
+    puts("3s timer up");
 }
 
 void printb() {
-    puts("b\n");
-    fflush(stdout);
+    puts("1s timer up");
 }
 
 void printc() {
-    puts("c\n");
-    fflush(stdout);
+    puts("100ms timer up");
 }
 
-void donothing(void) {
-    printf("-\n");
+void clear() {
+    system("cls");
 }
 
 int main() {
-    sw_memory_print_auto();
 
-    double ms = sw_start_ms();
-    double us = sw_start_us();
+    system("pause");
 
-    int i = 0;
-//    for (; i < 10; i++) {
-        ctime_create(2000, &donothing);
-//    }
-
+    ctime_start(3000, &printa);
+    ctime_start(1000, &printb);
+    ctime_start(100, &printc);
+    ctime_start(5000, &clear);
 
     while (!ctime_timers_stopped()) {}
-    fflush(stdout);
-
-    printf("%fus | %fms\n", sw_stop_us(us), sw_stop_ms(ms));
-
-    sw_memory_print_auto();
-
-
-    puts("DONE");
 
     return 0;
 }

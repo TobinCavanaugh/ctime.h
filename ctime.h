@@ -60,7 +60,7 @@ void ctime_internal_start_timer(void *rawArgs) {
 /// \param ms The time in milliseconds to wait before the function will be invoked.
 /// The actual wait time may be +/- up to 15ms due to thread creation delays
 /// \param function The function to be invoked
-void ctime_create(int ms, ctime_func_ptr(function)) {
+void ctime_start(int ms, ctime_func_ptr(function)) {
 
     //Initialize our arguments
     ctime_internal_args *args = malloc(sizeof(ctime_internal_args));
