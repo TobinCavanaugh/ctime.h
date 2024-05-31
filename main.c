@@ -30,20 +30,19 @@ int main() {
     double ms = sw_start_ms();
     double us = sw_start_us();
 
-    int i;
-    for (i = 0; i < 10; i++) {
-        ctime_create(1000, &donothing);
-    }
+    int i = 0;
+//    for (; i < 10; i++) {
+        ctime_create(2000, &donothing);
+//    }
+
 
     while (!ctime_timers_stopped()) {}
+    fflush(stdout);
 
     printf("%fus | %fms\n", sw_stop_us(us), sw_stop_ms(ms));
+
     sw_memory_print_auto();
 
-    pthread_t thread;
-
-    pthread_create(&thread, NULL, NULL, NULL);
-    printf("%lld\n", thread);
 
     puts("DONE");
 

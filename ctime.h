@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <malloc.h>
+#include <math.h>
 
 /// Mutex for ctime_active_timers_count
 static pthread_mutex_t ctime_active_timers_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -28,6 +29,8 @@ typedef struct {
 /// \param rawArgs The ctime_internal_args to read the data from
 void ctime_internal_start_timer(void *rawArgs) {
     //Read our void * rawArgs as 8 byte values
+    //We could do implicit casting by setting the argument
+    //to be of this type, but that feels kinda icky... idk
     ctime_internal_args *args = (ctime_internal_args *) rawArgs;
 
     //Get our wait duration
@@ -66,12 +69,13 @@ void ctime_create(int ms, ctime_func_ptr(function)) {
 
     //Start our thread
     pthread_t p;
-    int err = pthread_create(&p, NULL, &ctime_internal_start_timer, (void *) args);
+    int err = pthread_create(&p, NULL, (void *(*)(void *)) &ctime_internal_start_timer, (void *) args);
 
     if (err != 0) {
-        printf("CTIME ERROR: FAILED TO CREATE THREAD: %d\n", err);
+        printf("CTIME ERROR: FAILED TO CREATE THREAD: %d, Thread ID: %llu\n", err, p);
         fflush(stdout);
         ctime_active_timers_count--;
+        free(args);
     }
 }
 
