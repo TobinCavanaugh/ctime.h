@@ -1,12 +1,11 @@
-#include <stdio.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <malloc.h>
-#include <stdint.h>
-#include <stdlib.h>
 
 #ifndef CTIME
 #define CTIME
+
+#include <stdint.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <malloc.h>
 
 uint16_t ctime_active_timers = 0;
 
@@ -14,6 +13,11 @@ uint16_t ctime_active_timers = 0;
 #define CTIME_THREAD_ARR_IND 0
 #define CTIME_MS_ARR_IND 1
 #define CTIME_FUN_ARR_IND 2
+
+//Function prototypes
+void internal_start_timer(void *rawArgs);
+
+void create_timer(int ms, void (*function)(void));
 
 /// This is our internal function for our pthread to call.
 /// If you're reading this, probably dont mess with this
@@ -32,7 +36,7 @@ void internal_start_timer(void *rawArgs) {
     void (*timerDone)(void) = (void (*)(void)) args[CTIME_FUN_ARR_IND];
 
     //Wait for necessary time
-    usleep(ms * 1000);
+    usleep((useconds_t)(ms * 1000LL));
 
     //Complete stuff
     timerDone();
@@ -50,19 +54,18 @@ void create_timer(int ms, void (*function)(void)) {
 
     uint64_t *data = malloc(sizeof(uint64_t) * CTIME_ARR_LEN);
 
-    //TODO Some weirdness here with pthread...
-    pthread_t thread_id;
+    //TODO Some weirdness here with pthread... Fully functional but kinda weird
+    pthread_t thread_id = 0;
 
     //Load in our data
-    data[CTIME_THREAD_ARR_IND] = (uint64_t) thread_id;
     data[CTIME_MS_ARR_IND] = ms;
-    data[CTIME_FUN_ARR_IND] = (uint64_t) *function;
+    data[CTIME_FUN_ARR_IND] = (uint64_t) * function;
 
     ctime_active_timers++;
 
     //Start our thread
-    pthread_create(&thread_id, NULL, (void *(*)(void *)) internal_start_timer, data);
     data[CTIME_THREAD_ARR_IND] = thread_id;
+    pthread_create(&thread_id, NULL, (void *(*)(void *)) internal_start_timer, data);
 }
 
 #endif
