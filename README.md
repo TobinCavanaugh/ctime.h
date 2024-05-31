@@ -54,6 +54,9 @@ int main() {
 
 ### Code Example:
 ```C
+#include <stdio.h>
+#include "ctime.h"
+
 void print_thing(void){
   puts("timer up");
 }
