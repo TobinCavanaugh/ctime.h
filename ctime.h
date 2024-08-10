@@ -28,7 +28,7 @@ typedef struct {
 /// This is our internal function for our pthread to call.
 /// If you're reading this, probably dont mess with this
 /// \param rawArgs The ctime_internal_args to read the data from
-void ctime_internal_start_timer(void *rawArgs) {
+static void ctime_internal_start_timer(void *rawArgs) {
     //Read our void * rawArgs as 8 byte values
     //We could do implicit casting by setting the argument
     //to be of this type, but that feels kinda icky... idk
@@ -60,7 +60,7 @@ void ctime_internal_start_timer(void *rawArgs) {
 /// \param ms The time in milliseconds to wait before the function will be invoked.
 /// The actual wait time may be +/- up to 15ms due to thread creation delays
 /// \param function The function to be invoked
-void ctime_start(uint64_t ms, ctime_func_ptr(function)) {
+static void ctime_start(uint64_t ms, ctime_func_ptr(function)) {
 
     //Initialize our arguments
     ctime_internal_args *args = malloc(sizeof(ctime_internal_args));
@@ -84,7 +84,7 @@ void ctime_start(uint64_t ms, ctime_func_ptr(function)) {
 /// This will allow you to prevent the program from closing before all timers are
 /// complete. Like so: ```while (!ctime_timers_stopped()) {}```
 /// \return 1 if all timers are stopped.
-uint8_t ctime_timers_stopped() {
+static uint8_t ctime_timers_stopped() {
     //Not sure if this is strictly necessary, because we're reading the value...
     pthread_mutex_unlock(&ctime_active_timers_mutex);
     int val = ctime_active_timers_count;
